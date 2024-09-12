@@ -1,49 +1,12 @@
-# Taming Transformers for High-Resolution Image Synthesis
-##### CVPR 2021 (Oral)
-![teaser](assets/mountain.jpeg)
+# VQ-GAN for Calvin dataset
 
-[**Taming Transformers for High-Resolution Image Synthesis**](https://compvis.github.io/taming-transformers/)<br/>
-[Patrick Esser](https://github.com/pesser)\*,
-[Robin Rombach](https://github.com/rromb)\*,
-[Björn Ommer](https://hci.iwr.uni-heidelberg.de/Staff/bommer)<br/>
-\* equal contribution
-
-**tl;dr** We combine the efficiancy of convolutional approaches with the expressivity of transformers by introducing a convolutional VQGAN, which learns a codebook of context-rich visual parts, whose composition is modeled with an autoregressive transformer.
-
-![teaser](assets/teaser.png)
-[arXiv](https://arxiv.org/abs/2012.09841) | [BibTeX](#bibtex) | [Project Page](https://compvis.github.io/taming-transformers/)
-
-
-### News
-#### 2022
-- More pretrained VQGANs (e.g. a f8-model with only 256 codebook entries) are available in our new work on [Latent Diffusion Models](https://github.com/CompVis/latent-diffusion).
-- Added scene synthesis models as proposed in the paper [High-Resolution Complex Scene Synthesis with Transformers](https://arxiv.org/abs/2105.06458), see [this section](#scene-image-synthesis).
-#### 2021
-- Thanks to [rom1504](https://github.com/rom1504) it is now easy to [train a VQGAN on your own datasets](#training-on-custom-data).
-- Included a bugfix for the quantizer. For backward compatibility it is
-  disabled by default (which corresponds to always training with `beta=1.0`).
-  Use `legacy=False` in the quantizer config to enable it.
-  Thanks [richcmwang](https://github.com/richcmwang) and [wcshin-git](https://github.com/wcshin-git)!
-- Our paper received an update: See https://arxiv.org/abs/2012.09841v3 and the corresponding changelog.
-- Added a pretrained, [1.4B transformer model](https://k00.fr/s511rwcv) trained for class-conditional ImageNet synthesis, which obtains state-of-the-art FID scores among autoregressive approaches and outperforms BigGAN.
-- Added pretrained, unconditional models on [FFHQ](https://k00.fr/yndvfu95) and [CelebA-HQ](https://k00.fr/2xkmielf).
-- Added accelerated sampling via caching of keys/values in the self-attention operation, used in `scripts/sample_fast.py`.
-- Added a checkpoint of a [VQGAN](https://heibox.uni-heidelberg.de/d/2e5662443a6b4307b470/) trained with f8 compression and Gumbel-Quantization. 
-  See also our updated [reconstruction notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/reconstruction_usage.ipynb). 
-- We added a [colab notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/reconstruction_usage.ipynb) which compares two VQGANs and OpenAI's [DALL-E](https://github.com/openai/DALL-E). See also [this section](#more-resources).
-- We now include an overview of pretrained models in [Tab.1](#overview-of-pretrained-models). We added models for [COCO](#coco) and [ADE20k](#ade20k).
-- The streamlit demo now supports image completions.
-- We now include a couple of examples from the D-RIN dataset so you can run the
-  [D-RIN demo](#d-rin) without preparing the dataset first.
-- You can now jump right into sampling with our [Colab quickstart notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/taming-transformers.ipynb).
 
 ## Requirements
-A suitable [conda](https://conda.io/) environment named `taming` can be created
-and activated with:
 
 ```
-conda env create -f environment.yaml
-conda activate taming
+python3 -m venv .vqgan
+source .vqgan/bin/activate
+pip3 install -e .
 ```
 ## Overview of pretrained models
 The following table provides an overview of all models that are currently available. 
