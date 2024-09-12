@@ -1,0 +1,10 @@
+# venv
+.vqgan
+
+# files
+assets
+data
+
+# cache
+*.pyc
+__pycache__/
