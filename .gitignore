@@ -4,7 +4,13 @@
 # files
 assets
 data
+*.pth
 
 # cache
 *.pyc
 __pycache__/
+*.egg-info/
+
+# logs
+logs/
+wandb/

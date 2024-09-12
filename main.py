@@ -12,7 +12,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateM
 from pytorch_lightning.utilities import rank_zero_only
 
 from taming.data.utils import custom_collate
-
+import wandb
 
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit(".", 1)
@@ -185,34 +185,35 @@ class SetupCallback(Callback):
         self.cfgdir = cfgdir
         self.config = config
         self.lightning_config = lightning_config
+        os.makedirs(self.logdir)
+        os.makedirs(self.ckptdir)
+        os.makedirs(self.cfgdir)
+        print(f"folders created: {self.logdir}, {self.ckptdir}, {self.cfgdir}")
 
-    def on_pretrain_routine_start(self, trainer, pl_module):
+    def on_fit_start(self, trainer, pl_module):
         if trainer.global_rank == 0:
-            # Create logdirs and save configs
-            os.makedirs(self.logdir, exist_ok=True)
-            os.makedirs(self.ckptdir, exist_ok=True)
-            os.makedirs(self.cfgdir, exist_ok=True)
 
             print("Project config")
-            print(self.config.pretty())
+            print(OmegaConf.to_yaml(self.config))
             OmegaConf.save(self.config,
                            os.path.join(self.cfgdir, "{}-project.yaml".format(self.now)))
 
             print("Lightning config")
-            print(self.lightning_config.pretty())
+            print(OmegaConf.to_yaml(self.lightning_config))
             OmegaConf.save(OmegaConf.create({"lightning": self.lightning_config}),
                            os.path.join(self.cfgdir, "{}-lightning.yaml".format(self.now)))
 
         else:
-            # ModelCheckpoint callback created log directory --- remove it
-            if not self.resume and os.path.exists(self.logdir):
-                dst, name = os.path.split(self.logdir)
-                dst = os.path.join(dst, "child_runs", name)
-                os.makedirs(os.path.split(dst)[0], exist_ok=True)
-                try:
-                    os.rename(self.logdir, dst)
-                except FileNotFoundError:
-                    pass
+            print("Waiting for rank 0 to save configs...")
+            # # ModelCheckpoint callback created log directory --- remove it
+            # if not self.resume and os.path.exists(self.logdir):
+            #     dst, name = os.path.split(self.logdir)
+            #     dst = os.path.join(dst, "child_runs", name)
+            #     os.makedirs(os.path.split(dst)[0], exist_ok=True)
+            #     try:
+            #         os.rename(self.logdir, dst)
+            #     except FileNotFoundError:
+            #         pass
 
 
 class ImageLogger(Callback):
@@ -222,7 +223,7 @@ class ImageLogger(Callback):
         self.max_images = max_images
         self.logger_log_images = {
             pl.loggers.WandbLogger: self._wandb,
-            pl.loggers.TestTubeLogger: self._testtube,
+            # pl.loggers.TestTubeLogger: self._testtube,
         }
         self.log_steps = [2 ** n for n in range(int(np.log2(self.batch_freq)) + 1)]
         if not increase_log_steps:
@@ -231,7 +232,7 @@ class ImageLogger(Callback):
 
     @rank_zero_only
     def _wandb(self, pl_module, images, batch_idx, split):
-        raise ValueError("No way wandb")
+        # raise ValueError("No way wandb")
         grids = dict()
         for k in images:
             grid = torchvision.utils.make_grid(images[k])
@@ -309,7 +310,7 @@ class ImageLogger(Callback):
             return True
         return False
 
-    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
         self.log_img(pl_module, batch, batch_idx, split="train")
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
@@ -370,6 +371,7 @@ if __name__ == "__main__":
     parser = Trainer.add_argparse_args(parser)
 
     opt, unknown = parser.parse_known_args()
+
     if opt.name and opt.resume:
         raise ValueError(
             "-n/--name and -r/--resume cannot be specified both."
@@ -447,6 +449,7 @@ if __name__ == "__main__":
             "wandb": {
                 "target": "pytorch_lightning.loggers.WandbLogger",
                 "params": {
+                    "project": opt.name.split("-f")[0],
                     "name": nowname,
                     "save_dir": logdir,
                     "offline": opt.debug,
@@ -461,8 +464,8 @@ if __name__ == "__main__":
                 }
             },
         }
-        default_logger_cfg = default_logger_cfgs["testtube"]
-        logger_cfg = lightning_config.logger or OmegaConf.create()
+        default_logger_cfg = default_logger_cfgs["wandb"]
+        logger_cfg = OmegaConf.create()
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
@@ -482,9 +485,9 @@ if __name__ == "__main__":
             default_modelckpt_cfg["params"]["monitor"] = model.monitor
             default_modelckpt_cfg["params"]["save_top_k"] = 3
 
-        modelckpt_cfg = lightning_config.modelcheckpoint or OmegaConf.create()
+        modelckpt_cfg = OmegaConf.create()
         modelckpt_cfg = OmegaConf.merge(default_modelckpt_cfg, modelckpt_cfg)
-        trainer_kwargs["checkpoint_callback"] = instantiate_from_config(modelckpt_cfg)
+        # trainer_kwargs["checkpoint_callback"] = instantiate_from_config(modelckpt_cfg)
 
         # add callback which sets up log directory
         default_callbacks_cfg = {
@@ -516,9 +519,10 @@ if __name__ == "__main__":
                 }
             },
         }
-        callbacks_cfg = lightning_config.callbacks or OmegaConf.create()
+        callbacks_cfg = OmegaConf.create()
         callbacks_cfg = OmegaConf.merge(default_callbacks_cfg, callbacks_cfg)
         trainer_kwargs["callbacks"] = [instantiate_from_config(callbacks_cfg[k]) for k in callbacks_cfg]
+        trainer_kwargs["callbacks"].append(instantiate_from_config(modelckpt_cfg))
 
         trainer = Trainer.from_argparse_args(trainer_opt, **trainer_kwargs)
 
@@ -536,7 +540,7 @@ if __name__ == "__main__":
             ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
         else:
             ngpu = 1
-        accumulate_grad_batches = lightning_config.trainer.accumulate_grad_batches or 1
+        accumulate_grad_batches = opt.accumulate_grad_batches or 1
         print(f"accumulate_grad_batches = {accumulate_grad_batches}")
         lightning_config.trainer.accumulate_grad_batches = accumulate_grad_batches
         model.learning_rate = accumulate_grad_batches * ngpu * bs * base_lr

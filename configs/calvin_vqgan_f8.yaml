@@ -11,9 +11,9 @@ model:
       in_channels: 3
       out_ch: 3
       ch: 128
-      ch_mult: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+      ch_mult: [ 1,1,2,4]  # num_down = len(ch_mult)-1
       num_res_blocks: 2
-      attn_resolutions: [16]
+      attn_resolutions: [8,4]
       dropout: 0.0
 
     lossconfig:
@@ -28,16 +28,16 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 5
-    num_workers: 8
+    batch_size: 256
+    num_workers: 4
     train:
-      target: taming.data.custom.CustomTrain
+      target: taming.data.calvin.CalvinTrain
       params:
-        training_images_list_file: some/training.txt
-        size: 256
+        training_images_list_file: data/train.txt
+        size: 32
     validation:
-      target: taming.data.custom.CustomTest
+      target: taming.data.calvin.CalvinTest
       params:
-        test_images_list_file: some/test.txt
-        size: 256
+        test_images_list_file: data/test.txt
+        size: 32
 
