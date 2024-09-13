@@ -2,9 +2,10 @@
 .vqgan
 
 # files
-assets
-data
+assets/
+data/
 *.pth
+results/
 
 # cache
 *.pyc
