@@ -6,4 +6,5 @@ python3 main.py \
         -n calvin-vqgan-f"$f" \
         --accelerator gpu \
         --devices "$devices" \
-        --max_epochs 20
+        --max_epochs 50 \
+        --no-test True

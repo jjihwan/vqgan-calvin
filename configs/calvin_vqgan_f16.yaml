@@ -3,7 +3,7 @@ model:
   target: taming.models.vqgan.VQModel
   params:
     embed_dim: 256
-    n_embed: 1024
+    n_embed: 2048
     ddconfig:
       double_z: False
       z_channels: 256
@@ -28,7 +28,7 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 64
+    batch_size: 256
     num_workers: 4
     train:
       target: taming.data.calvin.CalvinTrain
