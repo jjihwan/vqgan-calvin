@@ -102,6 +102,22 @@ def get_parser(**parser_kwargs):
         default="",
         help="post-postfix for default name",
     )
+    parser.add_argument(
+        "--codebook_size",
+        type=int,
+        default=1024,
+        help="codebook size",
+    )
+    parser.add_argument(
+        "--codebook_dim",
+        type=int,
+        default=256,
+    )
+    parser.add_argument(
+        "--num_quantizers",
+        type=int,
+        default=4,
+    )
 
     return parser
 
@@ -205,15 +221,6 @@ class SetupCallback(Callback):
 
         else:
             print("Waiting for rank 0 to save configs...")
-            # # ModelCheckpoint callback created log directory --- remove it
-            # if not self.resume and os.path.exists(self.logdir):
-            #     dst, name = os.path.split(self.logdir)
-            #     dst = os.path.join(dst, "child_runs", name)
-            #     os.makedirs(os.path.split(dst)[0], exist_ok=True)
-            #     try:
-            #         os.rename(self.logdir, dst)
-            #     except FileNotFoundError:
-            #         pass
 
 
 class ImageLogger(Callback):
@@ -319,52 +326,8 @@ class ImageLogger(Callback):
 
 
 if __name__ == "__main__":
-    # custom parser to specify config files, train, test and debug mode,
-    # postfix, resume.
-    # `--key value` arguments are interpreted as arguments to the trainer.
-    # `nested.key=value` arguments are interpreted as config parameters.
-    # configs are merged from left-to-right followed by command line parameters.
-
-    # model:
-    #   base_learning_rate: float
-    #   target: path to lightning module
-    #   params:
-    #       key: value
-    # data:
-    #   target: main.DataModuleFromConfig
-    #   params:
-    #      batch_size: int
-    #      wrap: bool
-    #      train:
-    #          target: path to train dataset
-    #          params:
-    #              key: value
-    #      validation:
-    #          target: path to validation dataset
-    #          params:
-    #              key: value
-    #      test:
-    #          target: path to test dataset
-    #          params:
-    #              key: value
-    # lightning: (optional, has sane defaults and can be specified on cmdline)
-    #   trainer:
-    #       additional arguments to trainer
-    #   logger:
-    #       logger to instantiate
-    #   modelcheckpoint:
-    #       modelcheckpoint to instantiate
-    #   callbacks:
-    #       callback1:
-    #           target: importpath
-    #           params:
-    #               key: value
-
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
 
-    # add cwd for convenience and to make classes in this file available when
-    # running as `python main.py`
-    # (in particular `main.DataModuleFromConfig`)
     sys.path.append(os.getcwd())
 
     parser = get_parser()
@@ -434,6 +397,10 @@ if __name__ == "__main__":
         trainer_opt = argparse.Namespace(**trainer_config)
         lightning_config.trainer = trainer_config
 
+        config.model["params"]["n_embed"] = opt.codebook_size
+        config.model["params"]["embed_dim"] = opt.codebook_dim
+        config.model["params"]["num_quantizers"] = opt.num_quantizers
+
         # model
         model = instantiate_from_config(config.model)
 
@@ -449,7 +416,7 @@ if __name__ == "__main__":
             "wandb": {
                 "target": "pytorch_lightning.loggers.WandbLogger",
                 "params": {
-                    "project": opt.name.split("-f")[0],
+                    "project": opt.name,
                     "name": nowname,
                     "save_dir": logdir,
                     "offline": opt.debug,
@@ -477,8 +444,8 @@ if __name__ == "__main__":
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
-                "save_last": True,
-                "every_n_epochs": 5,
+                "every_n_epochs": 2,
+                "save_top_k": -1,
             }
         }
         if hasattr(model, "monitor"):
@@ -532,8 +499,8 @@ if __name__ == "__main__":
         # NOTE according to https://pytorch-lightning.readthedocs.io/en/latest/datamodules.html
         # calling these ourselves should not be necessary but it is.
         # lightning still takes care of proper multiprocessing though
-        data.prepare_data()
-        data.setup()
+        # data.prepare_data()
+        # data.setup()
 
         # configure learning rate
         bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate

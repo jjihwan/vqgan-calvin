@@ -47,7 +47,9 @@ class CalvinLMDBDataset(Dataset):
         img = (img/127.5-1.0).astype(np.float32)
         img = torch.tensor(img) # B, H, W, C; will be permuted in the model
 
-        return img
+        example = dict()
+        example["image"] = img
+        return example
 
     def _init_lmdb(self):
         self.lmdb = lmdb.open(self.lmdb_path, readonly=True, lock=False, readahead=False, meminit=False)
@@ -90,12 +92,12 @@ class CalvinLMDBDataModule(pl.LightningDataModule):
         return DataLoader(self.ds_train, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
     
     def val_dataloader(self):
-        return DataLoader(self.ds_val, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+        return DataLoader(self.ds_val, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
 
 
 if __name__ == "__main__":
-    # ds_train = CalvinLMDBDataset("data_txt/train.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/train")
-    # ds_train.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/train")
+    ds_train = CalvinLMDBDataset("data_txt/train.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/train")
+    ds_train.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/train")
 
-    ds_val = CalvinLMDBDataset("data_txt/test.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/test")
-    ds_val.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/test")
+    # ds_val = CalvinLMDBDataset("data_txt/test.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/test")
+    # ds_val.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/test")
