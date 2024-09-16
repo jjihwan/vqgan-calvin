@@ -3,7 +3,7 @@
 
 # files
 assets/
-data/
+data_txt/
 *.pth
 results/
 
