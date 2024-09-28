@@ -14,7 +14,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     res = args.resolution
     
-    root_dir = "/cvdata1/jihwan/calvin/dataset/ABCD"
+    root_dir = "/cvdata1/jihwan/calvin/dataset/D_generated"
     files = sorted(glob(os.path.join(root_dir, "*.mp4")))
     print(f"Total files: {len(files)}")
 

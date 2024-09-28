@@ -96,8 +96,16 @@ class CalvinLMDBDataModule(pl.LightningDataModule):
 
 
 if __name__ == "__main__":
-    ds_train = CalvinLMDBDataset("data_txt/train.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/train")
-    ds_train.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/train")
+    # ABCD dataset
+    # ds_train = CalvinLMDBDataset("data_txt/train.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/train")
+    # ds_train.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/train")
 
     # ds_val = CalvinLMDBDataset("data_txt/test.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/test")
     # ds_val.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/test")
+
+    # D_generated dataset
+    ds_train = CalvinLMDBDataset("data_txt/train_D_gen.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/train_D_gen")
+    ds_train.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/train_D_gen")
+
+    # ds_val = CalvinLMDBDataset("data_txt/test_D_gen.txt", "/cvdata1/jihwan/calvin_lmdb/lmdb/test_D_gen")
+    # ds_val.create_lmdb_database("/cvdata1/jihwan/calvin_lmdb/lmdb/test_D_gen")

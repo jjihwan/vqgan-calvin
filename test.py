@@ -56,11 +56,14 @@ def preprocess_image(frame, preprocessor):
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument("--config", type=str, default="configs/calvin_rvqgan_11224_lmdb.yaml")
-    parser.add_argument("--ckpt_path", type=str, default="logs/2024-09-16T12-49-39_calvin-rvqgan_ch11224_cs256_cd256_nq4/checkpoints/epoch=000027.ckpt")
+    # parser.add_argument("--config", type=str, default="configs/calvin_rvqgan_11224_lmdb.yaml")
+    parser.add_argument("--ckpt_path", type=str, default="logs/2024-09-18T10-52-14_calvin-rvqgan_ch1124_cs256_cd128_nq4/checkpoints/epoch=000021.ckpt")
     args = parser.parse_args()
 
-    config = OmegaConf.load(args.config)
+    ch_mult = args.ckpt_path.split("ch")[1].split("_")[0]
+    config_path = f"configs/calvin_rvqgan_{ch_mult}_lmdb.yaml"
+
+    config = OmegaConf.load(config_path)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     num_epoch = args.ckpt_path.split("epoch=")[1].split(".")[0]

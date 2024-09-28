@@ -26,10 +26,10 @@ model:
 data:
   target: taming.data.calvin_lmdb.CalvinLMDBDataModule
   params:
-    path_train: data_txt/train.txt
-    path_val: data_txt/test.txt
-    path_train_lmdb: /cvdata1/jihwan/calvin_lmdb/lmdb/train
-    path_val_lmdb: /cvdata1/jihwan/calvin_lmdb/lmdb/test
+    path_train: data_txt/train_D_gen.txt
+    path_val: data_txt/test_D_gen.txt
+    path_train_lmdb: /cvdata1/jihwan/calvin_lmdb/lmdb/train_D_gen
+    path_val_lmdb: /cvdata1/jihwan/calvin_lmdb/lmdb/test_D_gen
     batch_size: 256
     num_workers: 16
     size: 32

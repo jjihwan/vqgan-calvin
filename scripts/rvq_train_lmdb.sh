@@ -7,7 +7,7 @@ num_quantizers="$5" # 4
 python3 main.py \
         --base configs/calvin_rvqgan_"$ch_mult"_lmdb.yaml \
         -t True \
-        -n calvin-rvqgan \
+        -n calvin-D-rvqgan \
         --accelerator gpu \
         --devices "$devices" \
         --max_epochs 30 \
