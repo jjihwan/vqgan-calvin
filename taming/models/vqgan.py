@@ -227,7 +227,7 @@ class RVQModel(pl.LightningModule):
     #     return dec
 
     def forward(self, input):
-        quant, diff, _ = self.encode(input)
+        quant, diff, codes = self.encode(input)
         dec = self.decode(quant)
         return dec, diff
 
@@ -303,6 +303,23 @@ class RVQModel(pl.LightningModule):
             xrec = self.to_rgb(xrec)
         log["inputs"] = x
         log["reconstructions"] = xrec
+        return log
+
+    def log_images_and_codes(self, batch, **kwargs):
+        log = dict()
+        x = self.get_input(batch, self.image_key)
+        x = x.to(self.device)
+        quant, _, codes = self.encode(x)
+        xrec = self.decode(quant)
+
+        if x.shape[1] > 3:
+            # colorize with random projection
+            assert xrec.shape[1] > 3
+            x = self.to_rgb(x)
+            xrec = self.to_rgb(xrec)
+        log["inputs"] = x
+        log["reconstructions"] = xrec
+        log["codes"] = codes
         return log
 
     def to_rgb(self, x):
