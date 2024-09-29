@@ -79,8 +79,8 @@ if __name__ == "__main__":
     # os.makedirs(output_dir, exist_ok=True)
 
     output_root = args.data_dir.replace("img", "qtz")
-    input_dir = os.path.join(output_root, "input_gif")
-    output_dir = os.path.join(output_root, "output_gif")
+    input_dir = os.path.join(output_root, "input_mp4")
+    output_dir = os.path.join(output_root, "output_mp4")
     codes_dir = os.path.join(output_root, "codes")
     os.makedirs(input_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
@@ -117,10 +117,10 @@ if __name__ == "__main__":
 
         codes = log["codes"].cpu().numpy()
 
-        input_path = os.path.join(input_dir, pngs_basename+".gif")
-        output_path = os.path.join(output_dir, pngs_basename+".gif")
+        input_path = os.path.join(input_dir, pngs_basename+".mp4")
+        output_path = os.path.join(output_dir, pngs_basename+".mp4")
         codes_path = os.path.join(codes_dir, pngs_basename+".npy")
 
-        imageio.imwrite(input_path, frames, quality=10, fps=30, loop=0)
-        imageio.imwrite(output_path, rec_video, quality=10, fps=30, loop=0)
+        imageio.imwrite(input_path, frames, quality=10, fps=30)
+        imageio.imwrite(output_path, rec_video, quality=10, fps=30)
         np.save(codes_path, codes)
